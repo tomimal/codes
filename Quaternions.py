@@ -8,24 +8,19 @@ real numbers as its components.'''
 import numbers
 
 class Quaternion:
-    # rcomp, icomp, jcomp, and kcomp are the components of a quaternion. They are numbers.
+    # rcomp, icomp, jcomp, and kcomp are the components of a quaternion.
+    # They should be numbers.
     def __init__(self, rcomp, icomp, jcomp, kcomp):
         self.__rcomp = rcomp
         self.__icomp = icomp
         self.__jcomp = jcomp
         self.__kcomp = kcomp
+        self.__qlist = [self.__rcomp, self.__icomp, self.__jcomp, self.__kcomp]
 
     # Return the components of a quaternion using index operator
     def __getitem__(self, index):
-        if index == 0:
-            return self.__rcomp
-        if index == 1:
-            return self.__icomp
-        if index == 2:
-            return self.__jcomp
-        if index == 3:
-            return self.__kcomp
-
+        return self.__qlist[index]
+    
     # Return a string representation
     # addPlus() takes care of the signs; for example, get 1+2i-3j-4k instead of 1+2i+-3j+-4k
     def __str__(self):
@@ -73,6 +68,10 @@ class Quaternion:
                     self.__jcomp * secondQuaternion[1] + \
                     self.__kcomp * secondQuaternion[0]
             return Quaternion(rcomp, icomp, jcomp, kcomp)
+
+    # To allow scalar multiplication also from the left
+    def __rmul__(self, secondQuaternion):
+        return self.__mul__(secondQuaternion)
 
     # Division uses the inverse of a quaternion. This is defined below.
     def __truediv__(self, secondQuaternion):
