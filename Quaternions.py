@@ -23,7 +23,7 @@ class Quaternion:
                                + addPlus(self.jcomp) + 'j' + addPlus(self.kcomp) + 'k'
 
     def __iter__(self):
-        return (i for i in (self.rcomp, self.icomp, self.jcomp, self.kcomp))
+        return (i for i in self.qlist)
 
     def __abs__(self):
         return (self.rcomp ** 2 + self.icomp ** 2 +
