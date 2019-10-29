@@ -1,45 +1,54 @@
 '''The class of quaternions is defined.
 The operations +, -, *, and / between quaternions are defined using operator overloading.
 The class also contains a string representation of quaternions (as in 1+2i-3j+4k),
-and methods to find the conjugate and the inverse of a quaternion.
-It also contains a method (isReal) to check whether a quaternion has
-real numbers as its components.'''
+and methods to find the conjugate and the inverse of a quaternion.'''
 
 import numbers
 
 class Quaternion:
     # rcomp, icomp, jcomp, and kcomp are the components of a quaternion.
-    # They should be numbers.
     def __init__(self, rcomp, icomp, jcomp, kcomp):
-        self.__rcomp = rcomp
-        self.__icomp = icomp
-        self.__jcomp = jcomp
-        self.__kcomp = kcomp
-        self.__qlist = [self.__rcomp, self.__icomp, self.__jcomp, self.__kcomp]
+        self.rcomp = float(rcomp)
+        self.icomp = float(icomp)
+        self.jcomp = float(jcomp)
+        self.kcomp = float(kcomp)
+        self.qlist = [self.rcomp, self.icomp, self.jcomp, self.kcomp]
 
-    # Return the components of a quaternion using index operator
     def __getitem__(self, index):
-        return self.__qlist[index]
+        return self.qlist[index]
     
-    # Return a string representation
     # addPlus() takes care of the signs; for example, get 1+2i-3j-4k instead of 1+2i+-3j+-4k
     def __str__(self):
-        return str(self.__rcomp) + addPlus(self.__icomp) + 'i' \
-                                 + addPlus(self.__jcomp) + 'j' + addPlus(self.__kcomp) + 'k' 
+        return str(self.rcomp) + addPlus(self.icomp) + 'i' \
+                               + addPlus(self.jcomp) + 'j' + addPlus(self.kcomp) + 'k'
 
-    # Define +, -, *, and / between quaternions
+    def __iter__(self):
+        return (i for i in (self.rcomp, self.icomp, self.jcomp, self.kcomp))
+
+    def __abs__(self):
+        return (self.rcomp ** 2 + self.icomp ** 2 +
+                self.jcomp ** 2 + self.kcomp ** 2) ** 0.5
+
+    def __format__(self, fmt = ''):
+        components = (format(c, fmt) for c in self)
+        q = Quaternion(*components)
+        return str(q)
+
+    def __bool__(self):
+        return abs(self)
+    
     def __add__(self, secondQuaternion):
-        rcomp = self.__rcomp + secondQuaternion[0]
-        icomp = self.__icomp + secondQuaternion[1]
-        jcomp = self.__jcomp + secondQuaternion[2]
-        kcomp = self.__kcomp + secondQuaternion[3]
+        rcomp = self.rcomp + secondQuaternion[0]
+        icomp = self.icomp + secondQuaternion[1]
+        jcomp = self.jcomp + secondQuaternion[2]
+        kcomp = self.kcomp + secondQuaternion[3]
         return Quaternion(rcomp, icomp, jcomp, kcomp)
 
     def __sub__(self, secondQuaternion):
-        rcomp = self.__rcomp - secondQuaternion[0]
-        icomp = self.__icomp - secondQuaternion[1]
-        jcomp = self.__jcomp - secondQuaternion[2]
-        kcomp = self.__kcomp - secondQuaternion[3]
+        rcomp = self.rcomp - secondQuaternion[0]
+        icomp = self.icomp - secondQuaternion[1]
+        jcomp = self.jcomp - secondQuaternion[2]
+        kcomp = self.kcomp - secondQuaternion[3]
         return Quaternion(rcomp, icomp, jcomp, kcomp)
 
     def __mul__(self, secondQuaternion):
@@ -48,52 +57,40 @@ class Quaternion:
         # define the scalar product using quaternion product with Quaternion(r,0,0,0).
         # A direct definition reduces the number of calculations from 16 to 4.
         if isinstance(secondQuaternion, numbers.Real):
-            return Quaternion(self.__rcomp * secondQuaternion, self.__icomp * secondQuaternion,
-                              self.__jcomp * secondQuaternion, self.__kcomp * secondQuaternion)
+            return Quaternion(self.rcomp * secondQuaternion, self.icomp * secondQuaternion,
+                              self.jcomp * secondQuaternion, self.kcomp * secondQuaternion)
         else:
-            rcomp = self.__rcomp * secondQuaternion[0] - \
-                    self.__icomp * secondQuaternion[1] - \
-                    self.__jcomp * secondQuaternion[2] - \
-                    self.__kcomp * secondQuaternion[3]
-            icomp = self.__rcomp * secondQuaternion[1] + \
-                    self.__icomp * secondQuaternion[0] + \
-                    self.__jcomp * secondQuaternion[3] - \
-                    self.__kcomp * secondQuaternion[2]
-            jcomp = self.__rcomp * secondQuaternion[2] - \
-                    self.__icomp * secondQuaternion[3] + \
-                    self.__jcomp * secondQuaternion[0] + \
-                    self.__kcomp * secondQuaternion[1]
-            kcomp = self.__rcomp * secondQuaternion[3] + \
-                    self.__icomp * secondQuaternion[2] - \
-                    self.__jcomp * secondQuaternion[1] + \
-                    self.__kcomp * secondQuaternion[0]
+            rcomp = self.rcomp * secondQuaternion[0] - \
+                    self.icomp * secondQuaternion[1] - \
+                    self.jcomp * secondQuaternion[2] - \
+                    self.kcomp * secondQuaternion[3]
+            icomp = self.rcomp * secondQuaternion[1] + \
+                    self.icomp * secondQuaternion[0] + \
+                    self.jcomp * secondQuaternion[3] - \
+                    self.kcomp * secondQuaternion[2]
+            jcomp = self.rcomp * secondQuaternion[2] - \
+                    self.icomp * secondQuaternion[3] + \
+                    self.jcomp * secondQuaternion[0] + \
+                    self.kcomp * secondQuaternion[1]
+            kcomp = self.rcomp * secondQuaternion[3] + \
+                    self.icomp * secondQuaternion[2] - \
+                    self.jcomp * secondQuaternion[1] + \
+                    self.kcomp * secondQuaternion[0]
             return Quaternion(rcomp, icomp, jcomp, kcomp)
 
     # To allow scalar multiplication also from the left
     def __rmul__(self, secondQuaternion):
-        return self.__mul__(secondQuaternion)
+        return self.mul__(secondQuaternion)
 
-    # Division uses the inverse of a quaternion. This is defined below.
     def __truediv__(self, secondQuaternion):
         return self * secondQuaternion.inverse()
 
-    # Define the length, the conjugate, and the inverse of a quaternion
-    def norm(self):
-        return (self.__rcomp ** 2 + self.__icomp ** 2 +
-                self.__jcomp ** 2 + self.__kcomp ** 2) ** 0.5
-
     def conjugate(self):
-        return Quaternion(self.__rcomp, -self.__icomp, -self.__jcomp, -self.__kcomp)
+        return Quaternion(self.rcomp, -self.icomp, -self.jcomp, -self.kcomp)
 
     def inverse(self):
-        return self.conjugate() * (1/(self.norm() ** 2))
+        return self.conjugate() * (1/(abs(self) ** 2))
 
-    # Check whether the components of a quaternion are real numbers
-    def isReal(self):
-        return isinstance(self.__rcomp, numbers.Real) and \
-               isinstance(self.__icomp, numbers.Real) and \
-               isinstance(self.__jcomp, numbers.Real) and \
-               isinstance(self.__kcomp, numbers.Real)
 
 def addPlus(number):
     return '+' + str(number) if number >= 0 else str(number)

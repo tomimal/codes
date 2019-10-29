@@ -8,6 +8,8 @@ class QuaternionGUI:
     def __init__(self):
         window = tk.Tk()
         window.title("Quaternion arithmetic")
+        #### Adjust the number of decimals in the output
+        self.fmt = "<.5f"
 
         label = tk.Label(window, text = "Enter two quaternions")
         label.pack()
@@ -73,27 +75,26 @@ class QuaternionGUI:
         except:
             tk.messagebox.showerror("If you see this box", "There is an exception I didn't notice!")
 
-    # Define the commands in the buttons
     def addQuaternions(self):
         ans = self.getQuaternions()     # For the sake of readability
         if ans:
-            self.answer.set(str(ans[0] + ans[1]))
+            self.answer.set(str(format(ans[0] + ans[1], self.fmt)))
 
     def subQuaternions(self):
         ans = self.getQuaternions()
         if ans:
-            self.answer.set(str(ans[0] - ans[1]))
+            self.answer.set(str(format(ans[0] - ans[1], self.fmt)))
 
     def mulQuaternions(self):
         ans = self.getQuaternions()
         if ans:
-            self.answer.set(str(ans[0] * ans[1]))
+            self.answer.set(str(format(ans[0] * ans[1], self.fmt)))
 
     def divQuaternions(self):
         ans = self.getQuaternions()
         if ans:
             try:
-                self.answer.set(str(ans[0] / ans[1]))
+                self.answer.set(str(format(ans[0] / ans[1], self.fmt)))
             except ZeroDivisionError:
                 tk.messagebox.showerror("Error", "Can't divide by zero!")
 
