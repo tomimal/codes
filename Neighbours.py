@@ -64,6 +64,9 @@ class Populated_board(Board):
             similar_neighbours = self.neighbour_types(i, j).get(block.colour, 0)
             return similar_neighbours >= block.threshold
 
+    def satisfied_blocks(self):
+        return {block for block in self.population if self.is_satisfied(*block.position)}
+
 
 class just_jamming_and_by_jamming_I_mean_testing:
     def __init__(self):
@@ -127,8 +130,6 @@ class just_jamming_and_by_jamming_I_mean_testing:
 ################################################
 
     def satisfied(self):
-        #for item in self.population:
-        #    print(item)
         print("NEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEW")
         print("****************")
         #### Form the block population assuming that each block is not satisfied
@@ -145,9 +146,11 @@ class just_jamming_and_by_jamming_I_mean_testing:
             print(block)
         print("**************** neighbour_types (pick one)")
         print(self.populated_board.neighbour_types(4,4))
-        print("**************** satisfied")
-        for i, j in self.populated_board.populated_cells():
-            print((i, j), ': ', self.populated_board.is_satisfied(i, j), end = "    ")
+        print("**************** satisfied blocks")
+        for block in self.populated_board.satisfied_blocks():
+            print(block.position)
+
+         
 
 
 just_jamming_and_by_jamming_I_mean_testing()
