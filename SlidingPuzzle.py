@@ -13,17 +13,11 @@ import tkinter as tk
 class OwnList(list):
     '''A class to check the parity of a sequence.
     '''
-    #### An intermediate step
-    def numberOfInversions_single(self, index = 0):
-        count = 0
-        for i in range(index + 1, len(self)):
-            count = count + 1 if self[i] < self[index] else count
-        return count
 
     def numberOfInversions(self):
-        inversions = [OwnList(self[i: ]).numberOfInversions_single()
-                      for i in range(len(self) - 1)]
-        return sum(inversions)
+        ans = sum([1 for i in range(len(self)) for j in range(i + 1, len(self))
+                   if self[i] > self[j]])
+        return ans
 
     def isEven(self):
         return self.numberOfInversions() % 2 == 0
