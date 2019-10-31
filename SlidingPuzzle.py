@@ -15,9 +15,8 @@ class OwnList(list):
     '''
 
     def numberOfInversions(self):
-        ans = sum([1 for i in range(len(self)) for j in range(i + 1, len(self))
+        return sum([1 for i in range(len(self)) for j in range(i + 1, len(self))
                    if self[i] > self[j]])
-        return ans
 
     def isEven(self):
         return self.numberOfInversions() % 2 == 0
