@@ -11,11 +11,9 @@ import tkinter as tk
 
 
 class OwnList(list):
-    '''A class with methods to check the parity of a sequence.'''
-    def __init__(self, items):
-        super().__init__(list(items))
-
-    #### Just an intermediate step
+    '''A class to check the parity of a sequence.
+    '''
+    #### An intermediate step
     def numberOfInversions_single(self, index = 0):
         count = 0
         for i in range(index + 1, len(self)):
@@ -32,10 +30,10 @@ class OwnList(list):
 
 
 class Board:
-    '''Represents a square board. The pieces are represented using
-    a dictionary of the form {(i, j): number}, where (i, j) is the position of some piece.
-    The class contains methods to shuffle the board so that the game is solvable,
-    swap the places of two pieces, and to find the neighbours of a piece.'''
+    '''A square board: pieces is a dictionary of the form {(i, j): number},
+    where (i, j) is the position of some piece.
+    Method shuffle_board checks that the resulting game is solvable.
+    '''
     def __init__(self, size, pieces):
         self.size = size
         self.pieces = pieces
