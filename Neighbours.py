@@ -142,9 +142,13 @@ class just_jamming_and_by_jamming_I_mean_testing:
 
         frame = tk.Frame(window)
         frame.pack()
+        ### Unfinished
         button = tk.Button(frame, text = "Animate", command = self.animate).grid(row = 1, column = 1)
+        ### Generate a random population on the board
         button = tk.Button(frame, text = "Random", command = self.random_board).grid(row = 1, column = 2)
+        ### Usatisfied blocks are marked with X
         button = tk.Button(frame, text = "Unhappy", command = self.unhappy).grid(row = 1, column = 3)
+        ### Move the unsatisfied blocks to another location
         button = tk.Button(frame, text = "Move unhappy", command = self.move_unhappy).grid(row = 1, column = 4)
         
         window.mainloop()
