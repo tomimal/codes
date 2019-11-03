@@ -61,13 +61,13 @@ class QuaternionGUI:
 
         window.mainloop()
 
-    # Get quaternions from the given input. Returns None if an exception occurs
+    # Get quaternions from the given input
     def getQuaternions(self):
         try:
-            q1 = Quaternion(self.q1_rcomp.get(), self.q1_icomp.get(),
-                            self.q1_jcomp.get(), self.q1_kcomp.get())
-            q2 = Quaternion(self.q2_rcomp.get(), self.q2_icomp.get(),
-                            self.q2_jcomp.get(), self.q2_kcomp.get())
+            q1 = Quaternion([self.q1_rcomp.get(), self.q1_icomp.get(),
+                            self.q1_jcomp.get(), self.q1_kcomp.get()])
+            q2 = Quaternion([self.q2_rcomp.get(), self.q2_icomp.get(),
+                            self.q2_jcomp.get(), self.q2_kcomp.get()])
             return q1, q2
         # If some entry value is not float, the following exception is raised
         except tk.TclError:
