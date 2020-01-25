@@ -85,6 +85,18 @@ class SlidingPuzzle(SimpleBoard):
             self.swapObjects(i, column, i + order, column)
         self.positionOfBlank = (index, column)
 
+    ### Find the position of the smallest number on the board
+    ### which is not in a correct position.
+    
+    def hint(self):
+        number = self.rows * self.columns
+        position = (0, 0)
+        for (i, j) in self.population:
+            if (self.population[i, j] != self.solution[i, j] and
+                self.population[i, j] < number):
+                number = self.population[i, j]
+                position = (i, j)
+        return position
 
 
 
