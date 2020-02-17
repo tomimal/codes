@@ -3,125 +3,141 @@ it is shown with green background. The extreme version of the game does
 not show the numbers in the pieces. A player may use hints by
 pressing h on the keyboard. The smallest number on the board in
 incorrect position is shown.
+
+FIX: If the player clicks at the right upper corner after the game ends,
+the game continues.
 '''
 
 
 import tkinter as tk
-import tkinter.messagebox
 from Boards import SlidingPuzzle
 
 
-class SlidingPuzzleCanvas(tk.Canvas):
-    def __init__(self, container, rows, columns, showNumbers = True):
+class SlidingPuzzleNormal(tk.Canvas):
+    def __init__(self, container, rows, columns):
+        self.container = container
         self.rows = rows
         self.columns = columns
         self.puzzle = SlidingPuzzle(self.rows, self.columns)
-        self.solution = self.puzzle.getSolution()
-        self.showNumbers = showNumbers
+        ### Count how many clicks a player needs to solve the puzzle.
         self.clicks = 0
 
         ### Initial values for the canvas
         
         self.cellSizeX = self.cellSizeY = 50
-        self.canvasSizeX = self.cellSizeX * self.columns
-        self.canvasSizeY = self.cellSizeY * self.rows
-        self.fontsize = int(0.5 * min(self.cellSizeX, self.cellSizeY))
+        self.canvasSizeX = 50 * self.columns
+        self.canvasSizeY = 50 * self.rows
+        self.fontsize = int(self.cellSizeX / 2)
 
-        self.canvas = tk.Canvas(container, width = self.canvasSizeX,
-                                height = self.canvasSizeY, bg = "gray")
+        self.canvas = tk.Canvas(self.container,
+                                width = self.canvasSizeX,
+                                height = self.canvasSizeY,
+                                bg = "gray")
         self.canvas.pack(expand = True, fill = 'both')
         
-        self.canvas.bind("<Button-1>", self.processMouseClick)
+        self.canvas.bind("<Button-1>", self.leftClick)
         self.canvas.bind("<Configure>", self.changeSize)
+
+        self.puzzle.shuffle()
+        self.printPuzzle()
+
+    def printPiece(self, i, j):
+        ### Find the coordinates of the upper left corner of the cell at (i, j)
+        xCoord = j * self.cellSizeX
+        yCoord = i * self.cellSizeY
+        ### A piece (not blank) at the correct position is shown green.
+        if (i, j) == self.puzzle.getPositionOfBlank():
+            colour = "black"
+        elif self.puzzle.isCorrect(i, j):
+            colour = "green"
+        else:
+            colour = "gray"
+
+        self.canvas.create_rectangle(xCoord, yCoord,
+                                     xCoord + self.cellSizeX, yCoord + self.cellSizeY,
+                                     fill = colour, tag = "piece")
+
+    def printNumber(self, i, j):
+        xCoord = j * self.cellSizeX
+        yCoord = i * self.cellSizeY
+        number = self.puzzle.getPositions()[i, j]
+        self.canvas.create_text(xCoord + self.cellSizeX / 2, yCoord + self.cellSizeY / 2,
+                                text = number,
+                                font = f"Times {self.fontsize}",
+                                tag = "text")
+
+    def printPuzzle(self):
+        self.canvas.delete("all")
+        for i, j in self.puzzle.getPositions():
+            self.printPiece(i, j)
+            self.printNumber(i, j)
+
+    def clickedCell(self, xCoord, yCoord):
+        ### A click at the lower or right boundary would produce
+        ### a non-existent cell; min takes care of this.
+        row = min(int(yCoord / self.cellSizeY), self.rows - 1)
+        col = min(int(xCoord / self.cellSizeX), self.columns - 1)
+        return row, col
+
+    def leftClick(self, event):
+        i, j = self.clickedCell(event.x, event.y)
+        m, n = self.puzzle.getPositionOfBlank()
+        
+        ### Count only valid clicks (same row or column with the blank piece).
+        if i == m or j == n:
+            self.clicks += 1
+            self.puzzle.movePieces((i, j))
+            self.printPuzzle()
+
+        if self.puzzle.isSolved():
+            self.printResult()
+
+    def printResult(self):
+        self.canvas.delete("all")
+        self.canvas.create_text(self.canvasSizeX / 2, self.canvasSizeY / 2,
+                                text = str(self.clicks) + " clicks",
+                                font = f"Times {self.fontsize}",
+                                tag = "solved")
+
+    def changeSize(self, event):
+        self.canvasSizeX, self.canvasSizeY = event.width, event.height
+        self.cellSizeX = int(event.width / self.columns)
+        self.cellSizeY = int(event.height / self.rows)
+        self.fontsize = int(0.5 * min(self.cellSizeX, self.cellSizeY))
+        self.printPuzzle()
+
+
+
+
+class SlidingPuzzleExtreme(SlidingPuzzleNormal):
+    def __init__(self, container, rows, columns):
+        SlidingPuzzleNormal.__init__(self, container, rows, columns)
+
+        ### Provide hints in this game.
         self.canvas.bind("h", self.showHint)
         self.canvas.focus_set()
 
-        self.puzzle.shuffle()
-        self.printPuzzle(self.puzzle.getPositions())
-
-        container.mainloop()
-
-    def printPiece(self, i, j):
-        xCoord = j * self.cellSizeX
-        yCoord = i * self.cellSizeY
-        isBlank = (i, j) == self.puzzle.findBlankPiece()
-        isCorrect = self.solution[i, j] == self.puzzle.getPositions()[i, j]
-
-        if isBlank:
-            self.canvas.create_rectangle(xCoord, yCoord,
-                                         xCoord + self.cellSizeX, yCoord + self.cellSizeY,
-                                         fill = "black",
-                                         tag = "piece")
-        if not isBlank:
-            self.canvas.create_rectangle(xCoord, yCoord,
-                                         xCoord + self.cellSizeX, yCoord + self.cellSizeY,
-                                         fill = "green" if isCorrect else "gray",
-                                         tag = "piece")
-            ### Extreme version of the game does not show numbers,
-            ### only whether some piece is in a correct position.
-            if self.showNumbers:
-                self.canvas.create_text(xCoord + self.cellSizeX / 2, yCoord + self.cellSizeY / 2,
-                                        text = str(self.puzzle.getPositions()[i, j]),
-                                        font = f"Times {self.fontsize}",
-                                        tag = "text")
-
-    def printPuzzle(self, board):
-        self.canvas.delete("piece")
-        self.canvas.delete("text")
-        for i, j in board:
+    def printPuzzle(self):
+        self.canvas.delete("all")
+        for i, j in self.puzzle.getPositions():
             self.printPiece(i, j)
 
-    def clickedCell(self, xCoord, yCoord):
-        ### Get the sell which contains the point (xCoord, yCoord)
-        return int(yCoord / self.cellSizeY), int(xCoord / self.cellSizeX)
-        
-
-    def processMouseClick(self, event):
-        if not self.showNumbers:
-            self.canvas.delete("text")
-        i, j = self.clickedCell(event.x, event.y)
-        m, n = self.puzzle.findBlankPiece()
-        ### A valid click happens on the same row or column with the blank piece.
-        ### Count only valid clicks.
-        if i == m:
-            self.clicks += 1
-            self.puzzle.movePiecesInRow(i, n, j)
-            ### Print only the moved pieces, not the full board
-            for k in range(min(n, j), max(n, j) + 1):
-                self.printPiece(i, k)
-        if j == n:
-            self.clicks += 1
-            self.puzzle.movePiecesInColumn(j, m, i)
-            ### Print only the moved pieces, not the full board
-            for k in range(min(i, m), max(i, m) + 1):
-                self.printPiece(k, j)
-
-        if self.puzzle.getPositions() == self.solution:
-            self.canvas.delete("all")
-            self.canvas.create_text(self.canvasSizeX / 2, self.canvasSizeY / 2,
-                                    text = str(self.clicks) + " clicks",
-                                    font = f"Times {self.fontsize}",
-                                    tag = "solved")
-
-    def changeSize(self, event):
-        self.cellSizeX = int(event.width / self.columns)
-        self.cellSizeY = int(event.height / self.rows)
-        self.canvasSizeX = self.cellSizeX * self.columns
-        self.canvasSizeY = self.cellSizeY * self.rows
-        self.fontsize = int(0.5 * min(self.cellSizeX, self.cellSizeY))
-        ### The size of the board changes, so print the full board.
-        self.printPuzzle(self.puzzle.getPositions())
+    def leftClick(self, event):
+        ### Erase a hint when the mouse button is clicked.
+        self.canvas.delete("text")
+        SlidingPuzzleNormal.leftClick(self, event)
 
     def showHint(self, event):
-        i, j = self.puzzle.hint()[0],self.puzzle.hint()[1] 
-        xCoord = j * self.cellSizeX
-        yCoord = i * self.cellSizeY
-        self.canvas.create_text(xCoord + self.cellSizeX / 2, yCoord + self.cellSizeY / 2,
-                                        text = str(self.puzzle.getPositions()[i, j]),
-                                        font = f"Times {self.fontsize}",
-                                        tag = "text")
+        i, j = self.puzzle.hint()[0], self.puzzle.hint()[1]
+        self.printNumber(i, j)
 
 
+
+
+### Create an actual game
+
+
+import tkinter.messagebox
 
 
 class SlidingPuzzleGame:
@@ -139,7 +155,6 @@ class SlidingPuzzleGame:
         entry2 = tk.Entry(frame, textvariable = self.choice2)
         self.check = tk.IntVar()
         check = tk.Checkbutton(frame, text = "Extreme", variable = self.check)
-        self.showNumbers = 1 - self.check.get()
 
         text1.grid(row = 1, column = 1)
         entry1.grid(row = 1, column = 2)
@@ -154,17 +169,15 @@ class SlidingPuzzleGame:
         self.window.mainloop()
 
     def clickStart(self):
-        columns = self.choice1.get()
+        cols = self.choice1.get()
         rows = self.choice2.get()
-        if 3 <= rows <= 10 and 3 <= columns <= 10:
+        if 3 <= rows <= 10 and 3 <= cols <= 10:
             game = tk.Toplevel()
-            game.title(str(rows) + " X " + str(columns))
-            extreme = 1 - self.check.get()
-            gameCanvas = SlidingPuzzleCanvas(game, rows, columns, extreme)
-            # if extreme:
-            #     FrameHint = tk.Frame(game)
-            #     FrameHint.pack()
-            #     tk.Button(FrameHint, text = "Hint", command = self.clickStart).pack()
+            game.title(str(rows) + " X " + str(cols))
+            if self.check.get():
+                SlidingPuzzleExtreme(game, rows, cols)
+            else:
+                SlidingPuzzleNormal(game, rows, cols)
         else:
             tkinter.messagebox.showerror("Error", "Give proper values!")
 

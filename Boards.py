@@ -1,6 +1,7 @@
 '''Some representations of simple boards.
-Use the second class to build a sliding puzzle.
+The second class represents a sliding puzzle.
 '''
+
 
 import random
 
@@ -15,15 +16,16 @@ class SimpleBoard:
         self.cells = {(i, j) for i in range(self.rows) for j in range(self.columns)}
 
     ### Provide two methods to get the neighbours of a cell.
-    ### The first one returns all the elements in the surrounding square.
+    ### The first one returns all the cells in the surrounding square.
     ### The second one requires that the cells share a common side.
-    ### So (0, 0) and (1, 1) are neighbours by the first but not by the second method.
+    ### For example, (0, 0) and (1, 1) are neighbours by the first but not by the second method.
 
     def getNeighboursFull(self, i, j):
-        neighbours = {(i + k, j + l) for k in range(-1, 2) for l in range(-1, 2)}
-        ### The element (i, j) is contained in the above set.
+        neighbours = {(i + k, j + l) for k in range(-1, 2)
+                                     for l in range(-1, 2)}
+        ### A cell is not a neighbour of itself.
         neighbours.remove((i, j))
-        ### The set neighbours might still contain negative indices.
+        ### The set neighbours might contain negative indices.
         return neighbours & self.cells
 
     def getNeighbours(self, i, j):
@@ -31,146 +33,143 @@ class SimpleBoard:
         return self.getNeighboursFull(i, j) - remove
 
     def swapObjects(self, i, j, k, l):
-        if (i, j) in self.population and (k, l) in self.population:
-            self.population[i, j], self.population[k, l] = self.population[k, l], self.population[i, j]
+        self.population[(i, j)], self.population[(k, l)] = self.population[(k, l)], self.population[(i, j)]
 
 
 
 
 class SlidingPuzzle(SimpleBoard):
-    """ This class represents a sliding puzzle. It has numbers from 1 to rows * columns - 1,
-        and the largest number (lower right corner of the board) represents the blank piece.
+    """ The class represents a sliding puzzle. It has numbers from 1 to rows * columns,
+        and the largest number (rows * columns) represents the blank piece.
     """
     def __init__(self, rows, columns):
-        super().__init__(rows, columns)
+        SimpleBoard.__init__(self, rows, columns)
         ### Initialize the board; the largest number represents the blank piece.
+        ### self.population represents the current board (it changes after clicks).
         self.population = {(i, j) : i * self.columns + j + 1   for i in range(self.rows)
                                                                for j in range(self.columns)}
-        self.positionOfBlank = (self.rows - 1, self.columns - 1)
-        ### Copy the initial position as a solution.
+        ### The initial board is the solution.
         self.solution = dict(self.population)
 
-    def getSolution(self):
-        return self.solution
+    def isCorrect(self, i, j):
+        return self.population[i, j] == self.solution[i, j]
+
+    def isSolved(self):
+        return self.solution == self.population
 
     def getPositions(self):
         return self.population
     
-    def findBlankPiece(self):
-        return self.positionOfBlank
+    def getPositionOfBlank(self):
+        ### One could keep track of the blank piece using a variable.
+        ### This should be updated in the methods shuffle and movePieces,
+        ### but in this small board the following search will not take long.
+        for (i, j) in self.population:
+            if self.population[i, j] == self.rows * self.columns:
+                return (i, j)
 
     ### Shuffle the board by randomly choosing neighbours of the blank piece.
+    ### Maximum size of the board will be 10 x 10, so 10,000 should be enough.
     
     def shuffle(self):
         for k in range(10000):
-            now = self.findBlankPiece()
-            new = random.choice(tuple(self.getNeighbours(*now)))
-            self.swapObjects(*now, *new)
-            self.positionOfBlank = new
-        return self.population
-    
-    ### Provide methods to change the positions of several pieces with one click.
-    
-    def movePiecesInRow(self, row, positionOfBlank, index):
-        ### Check if the blank piece moves from left to right or vice versa
-        order = 1 if positionOfBlank < index else -1
-        for i in range(positionOfBlank, index, order):
-            self.swapObjects(row, i, row, i + order)
-        self.positionOfBlank = (row, index)
+            now = self.getPositionOfBlank()
+            new = random.choice(tuple(self.getNeighbours(*(now))))
+            self.swapObjects(*(now), *(new))
 
-    def movePiecesInColumn(self, column, positionOfBlank, index):
-        ### Blank goes up or down?
-        order = 1 if positionOfBlank < index else -1
-        for i in range(positionOfBlank, index, order):
-            self.swapObjects(i, column, i + order, column)
-        self.positionOfBlank = (index, column)
+    ### Change the positions of several pieces with one click.
+    
+    def movePieces(self, clicked):
+        rowBlank, colBlank = self.getPositionOfBlank()
+        rowClick, colClick = clicked
 
+        ### Check if the blank piece and the clicked piece are in the same row. 
+        if rowBlank == rowClick:
+            ### Check if the blank piece moves from left to right or vice versa
+            order = 1 if colBlank < colClick else -1
+            for i in range(colBlank, colClick, order):
+                self.swapObjects(rowBlank, i, rowBlank, i + order)
+
+        ### Check if the blank piece and the clicked piece are in the same column.
+        if colBlank == colClick:
+            ### Check if the blank piece moves from up to down or vice versa
+            order = 1 if rowBlank < rowClick else -1
+            for i in range(rowBlank, rowClick, order):
+                self.swapObjects(i, colBlank, i + order, colBlank)
+
+    ### The actual game will contain an extreme mode where the numbers
+    ### in the pieces are not shown.
     ### Find the position of the smallest number on the board
     ### which is not in a correct position.
     
     def hint(self):
         number = self.rows * self.columns
-        position = (0, 0)
         for (i, j) in self.population:
-            if (self.population[i, j] != self.solution[i, j] and
-                self.population[i, j] < number):
+            if not self.isCorrect(i, j) and self.population[i, j] < number:
                 number = self.population[i, j]
                 position = (i, j)
         return position
 
 
 
+
 ################################################################
-######## Something under construction...
+######## Under construction...
+########
+######## FIX: The isSatisfied method now uses fixed threshold of 0.5    
 ################################################################            
 
 
 
 
-"""
-class Block:
-    #### Threshold indicates ho many similar neighbours a block needs to be satisfied.
-    def __init__(self, colour, threshold):
-        self.colour = colour
-        self.threshold = threshold
-
-    def isSatisfied(self, similarNeighbours):
-        return similarNeighbours >= self.threshold
-
-    #### For testing
-    def __str__(self):
-        return(f"Colour: {self.colour}, Thr: {self.threshold}")
-
-
-
-
-class MovingBlocks(SimpleBoard):
-    #### Represents a population of blocks living on a board.
-    #### An unsatisfied block moves to another position on the board.
+class MovingItems(SimpleBoard):
+    """ Represents a population (of two colours) living on a board.
+        Each cell requires a certain amount of similar neighbours to be satisfied.
+        Unsatisfied blocks moves to another position on the board.
+        Population is meant to be a dictionary (i, j) : red OR blue OR white.
+        (i, j) is a cell on the board and white represents unpopulated cell.
+    """    
     def __init__(self, rows, columns, population = None):
-        super().__init__(rows, columns, population)
+        SimpleBoard.__init__(self, rows, columns, population)
 
     def populatedCells(self):
-        return set(self.population.keys())
+        """ Return the set of populated cells."""
+        return {(i, j) for (i, j) in self.population
+                       if self.population[i, j] != 'white'}
 
-    def emptyCells(self):
-        return self.cells - populatedCells()
+    def getNeighbours(self, i, j):
+        """ Return the set of populated neighbour cells."""
+        neighbourCells = SimpleBoard.getNeighboursFull(self, i, j)
+        return {(k, l) for (k, l) in neighbourCells if (k, l) in self.populatedCells()}
 
-    ### Override neighbours to return only populated neighbouring cells
-    def getNeighboursFull(self, i, j):
-        neighbourCells = super().getNeighboursFull(i, j)
-        populatedNeighbourCells = neighbourCells & self.populatedCells()
-        return {(k, l): self.population[k, l] for (k, l) in neighbourCells if (k, l) in self.population}
+    def typesOfNeighbours(self, i, j):
+        """ Return the number of blue and red neighbours."""
+        neghbs = [self.population[k, l] for (k, l) in self.getNeighbours(i, j)]
+        return neghbs.count('blue'), neghbs.count('red')
 
     def isSatisfied(self, i, j):
-        if (i, j) in self.population:
-            colour = self.population[i, j].colour
-            neighbour_colours = [self.items[k, l].colour for k, l in self.neighbours(i, j)]
-            if neighbour_colours:
-                count = neighbour_colours.count(colour)
-                return count >= self.items[i, j].threshold
-            else:
-                return False
-
-    def satisfiedCells(self):
-        return {(i, j) for (i, j) in self.items if self.isSatisfied(i, j)}
+        ### Else statement applies if (i, j) is a white cell.
+        blue = self.typesOfNeighbours(i, j)[0]
+        red  = self.typesOfNeighbours(i, j)[1]
+        if self.population[i, j] == 'blue':
+            return blue >= red
+        else:
+            return red >= blue
 
     def unsatisfiedCells(self):
-        return self.populatedCells() - self.satisfiedCells()
+        return {(i, j) for (i, j) in self.populatedCells() if not self.isSatisfied(i, j)}
 
-    def closestEmptyCells(self, i, j):
-        minDist = min({dist1(i, j, k, l) for k, l in self.emptyCells()})
-        return {(k,l) for k, l in self.emptyCells() if dist1(i, j, k, l) == minDist}
+    def getEmptyCell(self):
+        emptyCells = self.cells - self.populatedCells()
+        return random.choice(tuple(emptyCells))
 
     def move(self, i, j):
-        #### Move a block at the position (i, j) to a closest empty cell.
-        new_cell = random.choice(tuple(self.closestEmptyCells(i, j)))
-        self.items[new_cell] = self.items[i, j]
-        del self.items[i, j]
+        """ Move an item to some empty cell."""
+        newCell = self.getEmptyCell()
+        self.population[newCell] = self.population[i, j]
+        self.population[i, j] = 'white'
 
     def moveUnsatisfied(self):
         for i, j in self.unsatisfiedCells():
             self.move(i, j)
-"""
-
 
